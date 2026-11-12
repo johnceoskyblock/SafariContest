@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "safari-contest",
+  "version": "${version}",
+  "name": "SafariContest",
+  "description": "Miria contest tracking, configurable party messages, and personal Torrhus Honeyhive beacons for Hypixel SkyBlock.",
+  "authors": ["JohnCEO", "JohnKuudra"],
+  "contact": {
+    "sources": "https://github.com/johnceoskyblock/SafariContest",
+    "issues": "https://github.com/johnceoskyblock/SafariContest/issues"
+  },
+  "license": "CC0-1.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": [{"value": "net.johnceo.safaricontest.SafariContest", "adapter": "kotlin"}]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "${minecraft}",
+    "java": ">=25",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*"
+  }
+}

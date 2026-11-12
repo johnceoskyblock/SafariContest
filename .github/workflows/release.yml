@@ -1,0 +1,48 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Validate release tag
+        shell: bash
+        run: |
+          version=$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '\r')
+          test "$GITHUB_REF_NAME" = "v$version"
+      - run: chmod +x gradlew
+      - run: ./gradlew buildAllTargets
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-jars
+          path: build/distributions/*/*.jar
+          if-no-files-found: error
+  publish:
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-jars
+          path: jars
+      - name: Publish tested Minecraft builds
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$GITHUB_REF_NAME" jars/*.jar --verify-tag --title "SafariContest $GITHUB_REF_NAME" --generate-notes

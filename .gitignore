@@ -1,0 +1,11 @@
+.gradle/
+.kotlin/
+.idea/
+**/build/
+run/
+logs/
+*.iml
+.DS_Store
+.env
+*.local
+*.log
