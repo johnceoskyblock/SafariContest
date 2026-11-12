@@ -45,4 +45,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$GITHUB_REF_NAME" jars/*.jar --verify-tag --title "SafariContest $GITHUB_REF_NAME" --generate-notes
+        shell: bash
+        run: |
+          mapfile -d '' files < <(find jars -type f -name '*.jar' -print0)
+          test "${#files[@]}" -eq 3
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" --verify-tag --title "SafariContest $GITHUB_REF_NAME" --generate-notes
