@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class ContestBehaviorTest {
-    @Test fun `start fires on a new window anywhere in SkyBlock without any party role`() {
+    @Test fun `start fires on a new eligible window without requiring a party role`() {
         val state = ContestStartState()
         assertFalse(state.poll(10, 1199, true, true))
         assertTrue(state.poll(11, 0, true, true))

@@ -24,21 +24,26 @@ object SafariContest : ClientModInitializer {
         ContestConfig.load()
         PartyManager.register()
         SafariIsland.register()
+        ClientPlayConnectionEvents.INIT.register { _, _ -> SafariIsland.reset() }
         HoneyHives.register()
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            for (name in listOf("safaricontest", "sc")) dispatcher.register(ClientCommands.literal(name)
+            for (name in listOf("safaricontest", "s")) dispatcher.register(ClientCommands.literal(name)
                 .executes { openSettings = true; 1 }
+                .then(ClientCommands.literal("gui").executes { Minecraft.getInstance().execute {
+                    Minecraft.getInstance().smSetScreen(ContestGui()) }; 1 })
                 .then(ClientCommands.literal("debug").executes { HoneyHives.debug(Minecraft.getInstance()); 1 }))
         }
         ClientTickEvents.END_CLIENT_TICK.register { client ->
             if (smokeTicks > 0 && --smokeTicks == 0) openSettings = true
             if (openSettings) { openSettings = false; client.smSetScreen(ContestSettingsScreen()) }
             PartyManager.tick(client)
+            JoinWelcome.tick(client)
             HoneyHives.tick(client)
             ContestTracker.onClientTick(client)
         }
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
             PartyManager.reset(); SafariIsland.reset(); HoneyHives.disconnect(); ContestTracker.selectScope(null)
+            JoinWelcome.reset()
         }
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, id("contest")) { g, _ -> ContestHud.render(g) }
     }

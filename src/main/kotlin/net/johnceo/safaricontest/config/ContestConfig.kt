@@ -21,9 +21,27 @@ object ContestConfig {
     var contestSoundVolume = 100
     var hudX = 10
     var hudY = 10
+    val layout = net.johnceo.safaricontest.hud.HudLayout(.015f, .025f)
+    private var legacyLayout = true
+    fun layoutFor(width: Int, height: Int) = layout.also {
+        if (legacyLayout) {
+            it.x = hudX.toFloat() / width.coerceAtLeast(1)
+            it.y = hudY.toFloat() / height.coerceAtLeast(1)
+        }
+    }
+    fun editLayout(width: Int, height: Int) { layoutFor(width, height); legacyLayout = false }
+    fun resetLayout() { layout.reset(); legacyLayout = false }
+    var hudSnapping = true
+    var settingsTheme = 0
+    var hudBorder = true
+    var hudBackground = 0x0D0D10
+    var hudBorderColor = 0x605238
+    var hudTitleColor = 0xE6C878
+    var hudTransparency = 20
     val warnings = linkedSetOf(5, 3, 1)
     val ticketAnnouncements = mutableMapOf<String, Long>()
     val startAnnouncements = mutableMapOf<String, Long>()
+    val ticketRequests = mutableMapOf<String, MutableSet<String>>()
     val ticketChoices = listOf("r", "!m7", "!t5", "other")
     val startChoices = listOf("!dt contest", "other")
     fun ticketMessage() = PartyMessage.resolve(ticketChoice, customTicket, ticketChoices, "r")
@@ -48,12 +66,25 @@ object ContestConfig {
         customStart = p.getProperty("customStart", "")
         hudX = p.getProperty("hudX")?.toIntOrNull()?.coerceAtLeast(0) ?: 10
         hudY = p.getProperty("hudY")?.toIntOrNull()?.coerceAtLeast(0) ?: 10
+        legacyLayout = !p.containsKey("hud.contest.x")
+        layout.load(p, "contest")
+        hudSnapping = bool("hudSnapping", true)
+        settingsTheme = p.getProperty("settingsTheme")?.toIntOrNull()?.coerceIn(SettingsPalette.names.indices) ?: 0
+        hudBorder = bool("hudBorder", true)
+        hudBackground = readColor(p.getProperty("hudBackground"), 0x0D0D10)
+        hudBorderColor = readColor(p.getProperty("hudBorderColor"), 0x605238)
+        hudTitleColor = readColor(p.getProperty("hudTitleColor"), 0xE6C878)
+        hudTransparency = p.getProperty("hudTransparency")?.toIntOrNull()?.coerceIn(0,100) ?: 20
         contestSoundVolume = p.getProperty("contestSoundVolume")?.toIntOrNull()?.coerceIn(0, 200) ?: 100
         contestSound = p.getProperty("contestSound", "minecraft:block.bell.use")
         warnings.clear()
         warnings.addAll(p.getProperty("warnings", "5,3,1").split(',').mapNotNull(String::toIntOrNull).filter { it in setOf(5, 3, 1) })
-        ticketAnnouncements.clear(); startAnnouncements.clear()
+        ticketAnnouncements.clear(); startAnnouncements.clear(); ticketRequests.clear()
         p.stringPropertyNames().forEach { key ->
+            if (key.startsWith("ticketRequest.")) {
+                ticketRequests[key.removePrefix("ticketRequest.")] = p.getProperty(key).split(',')
+                    .filter { it.matches(Regex("[A-Za-z0-9_]{1,16}")) }.mapTo(linkedSetOf()) { it.lowercase() }
+            }
             p.getProperty(key).toLongOrNull()?.let { value ->
                 if (key.startsWith("ticketAnnounced.")) ticketAnnouncements[key.removePrefix("ticketAnnounced.")] = value
                 if (key.startsWith("startAnnounced.")) startAnnouncements[key.removePrefix("startAnnounced.")] = value
@@ -70,11 +101,18 @@ object ContestConfig {
             "startChoice" to startChoice, "customStart" to customStart, "warnings" to warnings.joinToString(","),
             "hudX" to hudX, "hudY" to hudY, "contestSoundVolume" to contestSoundVolume,
             "contestSound" to contestSound).forEach { (k,v) -> p.setProperty(k, v.toString()) }
+        mapOf("hudSnapping" to hudSnapping, "settingsTheme" to settingsTheme, "hudBorder" to hudBorder,
+            "hudBackground" to hex(hudBackground), "hudBorderColor" to hex(hudBorderColor),
+            "hudTitleColor" to hex(hudTitleColor), "hudTransparency" to hudTransparency)
+            .forEach { (k,v) -> p.setProperty(k, v.toString()) }
+        if (!legacyLayout) layout.save(p, "contest")
         val window = net.johnceo.safaricontest.contest.ContestTracker.absoluteWindow(java.time.LocalDateTime.now())
         ticketAnnouncements.entries.removeIf { it.value < window - 2 }
         startAnnouncements.entries.removeIf { it.value < window - 2 }
+        ticketRequests.entries.removeIf { (it.key.substringAfterLast('.').toLongOrNull() ?: -1L) < window || it.value.isEmpty() }
         ticketAnnouncements.forEach { (k,v) -> p.setProperty("ticketAnnounced.$k", v.toString()) }
         startAnnouncements.forEach { (k,v) -> p.setProperty("startAnnounced.$k", v.toString()) }
+        ticketRequests.forEach { (k,v) -> p.setProperty("ticketRequest.$k", v.joinToString(",")) }
         Files.createDirectories(file.parent)
         val temp = Files.createTempFile(file.parent, "contest-", ".tmp")
         try {
@@ -82,6 +120,9 @@ object ContestConfig {
             Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING)
         } finally { Files.deleteIfExists(temp) }
     }
+    fun parseColor(value: String): Int? = value.trim().removePrefix("#").takeIf { it.matches(Regex("[0-9a-fA-F]{6}")) }?.toIntOrNull(16)
+    private fun readColor(value: String?, fallback: Int) = value?.let(::parseColor) ?: fallback
+    fun hex(value: Int) = "#%06X".format(value and 0xFFFFFF)
 }
 
 /** All user input remains the body of /pc, including a leading slash. */

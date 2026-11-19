@@ -9,6 +9,8 @@ import kotlin.math.round
 import net.johnceo.safaricontest.config.ContestConfig
 import net.johnceo.safaricontest.hud.SkyblockSidebar
 import net.johnceo.safaricontest.party.PartyManager
+import net.johnceo.safaricontest.safari.ContestInstance
+import net.johnceo.safaricontest.safari.SafariIsland
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.core.registries.BuiltInRegistries
@@ -78,7 +80,8 @@ object ContestTracker {
         val skyblock = SkyblockSidebar.inSkyblock(client)
         val player = client.player!!
         val startKey = player.uuid.toString()
-        if (starts.poll(windowKey, secondsIntoWindow, ContestConfig.autoContestDowntime, skyblock) &&
+        if (starts.poll(windowKey, secondsIntoWindow, ContestConfig.autoContestDowntime,
+                skyblock && ContestInstance.eligible(SafariIsland.currentMode)) &&
             ContestConfig.startAnnouncements[startKey] != windowKey &&
             PartyManager.sendPartyChat(client, ContestConfig.startMessage())) {
             ContestConfig.startAnnouncements[startKey] = windowKey
@@ -158,7 +161,7 @@ object ContestTracker {
         val saved = ContestConfig.ticketAnnouncements
         if (saved[key] == windowKey) return
         if (ticketNotices.claim(player.uuid.toString(), windowKey, tier, secondsIntoWindow, firstClass, points) {
-                PartyManager.sendPartyChat(client, ContestConfig.ticketMessage(), requireParty = true)
+                PartyManager.sendTicketMessage(client, ContestConfig.ticketMessage())
             }) {
             saved.entries.removeIf { it.value < windowKey - 2 }
             saved[key] = windowKey

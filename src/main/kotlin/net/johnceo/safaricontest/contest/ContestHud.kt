@@ -6,23 +6,38 @@ import net.johnceo.safaricontest.hud.SkyblockSidebar
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
+/** Compact row with SparklingMutuals' pixel check/X sprites; independent of font glyph support. */
 object ContestHud {
+    const val TITLE = "Miria Contest"
+    const val HEIGHT = 17
+    val width get() = Minecraft.getInstance().font.width(TITLE) + 25
     fun render(g: GuiGraphicsExtractor) {
         val c = Minecraft.getInstance()
-        if (c.player == null || c.options.smHideGui || !ContestConfig.showContestTimer ||
+        if (c.player == null || c.options.smHideGui || c.smScreen is ContestGui || !ContestConfig.showContestTimer ||
             !ContestConfig.trackContest || !SkyblockSidebar.inSkyblock(c)) return
-        val x = ContestConfig.hudX.coerceIn(0, (c.window.guiScaledWidth - 190).coerceAtLeast(0))
-        val y = ContestConfig.hudY.coerceIn(0, (c.window.guiScaledHeight - 68).coerceAtLeast(0))
-        g.fill(x, y, x+190, y+68, 0xB0182018.toInt())
-        g.text(c.font, "Miria's Contest", x+6, y+6, 0xFFFFCC66.toInt(), true)
-        val gap = ContestTracker.betweenContests()
-        val seconds = if (gap) ContestTracker.secondsToNextStart() else ContestTracker.secondsToEnd()
-        val rows = listOf(
-            "${if (gap) "Next contest" else "Time left"}: ${ContestTracker.formatRemaining(seconds)}",
-            "Bracket: ${ContestTracker.currentTier().ifBlank { "—" }}",
-            "Score: ${ContestTracker.currentPoints().takeIf { it >= 0 }?.let { "%,d".format(it) } ?: "—"}",
-            "${if (ContestConfig.firstClassTicket) "First-Class" else "Basic"} ticket: ${if (ContestTracker.isComplete()) "Earned" else "Incomplete"}")
-        rows.forEachIndexed { i, row -> g.text(c.font, row, x+6, y+18+i*11,
-            if (i == 3 && ContestTracker.isComplete()) 0xFF55FF55.toInt() else 0xFFEEEEEE.toInt(), true) }
+        val layout = ContestConfig.layoutFor(c.window.guiScaledWidth, c.window.guiScaledHeight)
+        val box = layout.bounds(c.window.guiScaledWidth, c.window.guiScaledHeight, width, HEIGHT)
+        renderAt(g, box.x, box.y, ContestTracker.isComplete())
+    }
+    fun renderAt(g: GuiGraphicsExtractor, x: Int, y: Int, earned: Boolean) {
+        val c = Minecraft.getInstance()
+        val scale = ContestConfig.layoutFor(c.window.guiScaledWidth, c.window.guiScaledHeight)
+            .effectiveScale(c.window.guiScaledWidth, c.window.guiScaledHeight, width, HEIGHT)
+        g.pose().pushMatrix(); g.pose().translate(x.toFloat(), y.toFloat()); g.pose().scale(scale, scale)
+        val alpha = ((100 - ContestConfig.hudTransparency.coerceIn(0,100)) * 255 / 100) shl 24
+        g.fill(0, 0, width, HEIGHT, alpha or ContestConfig.hudBackground)
+        if (ContestConfig.hudBorder) {
+            val color = 0xFF000000.toInt() or ContestConfig.hudBorderColor
+            g.fill(0,0,width,1,color); g.fill(0,HEIGHT-1,width,HEIGHT,color)
+            g.fill(0,0,1,HEIGHT,color); g.fill(width-1,0,width,HEIGHT,color)
+        }
+        g.text(c.font, TITLE, 5, 5, 0xFF000000.toInt() or ContestConfig.hudTitleColor, true)
+        val sprite = if (earned) arrayOf("........#", ".......##", "......##.", "#....##..", "##..##...", ".####....", "..##.....")
+            else arrayOf("##.....##", ".##...##.", "..##.##..", "...###...", "..##.##..", ".##...##.", "##.....##")
+        sprite.forEachIndexed { row, line -> line.forEachIndexed { col, pixel ->
+            if (pixel == '#') g.fill(width-14+col, 5+row, width-13+col, 6+row,
+                if (earned) 0xFF55FF55.toInt() else 0xFFFF5555.toInt())
+        } }
+        g.pose().popMatrix()
     }
 }
