@@ -60,15 +60,15 @@ class ContestSettingsScreen(private var page: Int = 0, private val returnTo: Scr
         choice(0,"Warning volume","Set the local warning sound volume.",listOf("0%","25%","50%","75%","100%","150%","200%"),
             { "${ContestConfig.contestSoundVolume}%" },{ ContestConfig.contestSoundVolume = it.removeSuffix("%").toInt() })
         textInput(0,"Warning sound","Minecraft sound identifier.",{ ContestConfig.contestSound },{ ContestConfig.contestSound = it })
-        choice(1,"Ticket earned message","For ! commands: members send r if anyone (including self) requested !dt, 1s or sec. Leaders wait for every other requester to say r or ready, then send the command. Plain text sends normally.",
+        choice(1,"Ticket earned message","Only sends after your own !dt contest in this party and contest. Joining a party never sends it. For ! commands: members use r while anyone is waiting; leaders wait for every other requester to say r or ready, then send the command.",
             ContestConfig.ticketChoices,{ ContestConfig.ticketChoice },{ ContestConfig.ticketChoice = it })
-        if (ContestConfig.ticketChoice == "other") textInput(1,"Custom ticket message","Sent as party chat. Empty text uses r. The same member r fallback and leader readiness wait apply to any ! command.",
+        if (ContestConfig.ticketChoice == "other") textInput(1,"Custom ticket message","Requires your own !dt contest in this party. Empty text uses r. Any ! command follows member r fallback / leader readiness rules.",
             { ContestConfig.customTicket },{ ContestConfig.customTicket = it })
         toggle(1,"Auto contest-start message","Send at a new contest only inside a dungeon or Kuudra instance. Never in hubs, islands, Garden or Torrhus.",
             { ContestConfig.autoContestDowntime },{ ContestConfig.autoContestDowntime = it })
         choice(1,"Contest-start message","Only sends in dungeon or Kuudra instances, regardless of your party role.",ContestConfig.startChoices,
             { ContestConfig.startChoice },{ ContestConfig.startChoice = it })
-        if (ContestConfig.startChoice == "other") textInput(1,"Custom start message","Empty text uses !dt contest. The instance restriction applies to custom text too.",
+        if (ContestConfig.startChoice == "other") textInput(1,"Custom start message","Empty text uses !dt contest. Only !dt contest arms a ticket reply. The instance restriction applies to custom text too.",
             { ContestConfig.customStart },{ ContestConfig.customStart = it })
         toggle(2,"Miria contest HUD","One condensed row: Miria Contest and a ticket checkmark or X. Ticket detection continues when hidden.",
             { ContestConfig.showContestTimer },{ ContestConfig.showContestTimer = it })
@@ -146,7 +146,6 @@ class ContestSettingsScreen(private var page: Int = 0, private val returnTo: Scr
         g.text(font,Component.literal("CONTEST").withStyle { it.withBold(true) },8,26,SettingsPalette.gold,false)
         g.fill(left,12,search.x+search.width+7,38,SettingsPalette.card)
         g.text(font,if (query.isBlank()) pages[page] else "Search results",left,59,SettingsPalette.text,false)
-        g.text(font,"/s",8,height-23,SettingsPalette.accent,false)
         g.enableScissor(left,top,width-10,bottom)
         cards.forEach { card ->
             g.fill(left,card.y,width-12,card.y+card.height,SettingsPalette.card)

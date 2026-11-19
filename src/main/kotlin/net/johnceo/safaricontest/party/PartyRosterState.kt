@@ -37,4 +37,11 @@ object PartyRosterSignals {
         Regex("^The party was disbanded(?:[.!]| because .+)$"),
         Regex("^You are not (?:currently )?in a party[.!]?$"))
     fun changed(text: String) = messages.any { it.matches(text.replace(Regex("§."), "").trim()) }
+    private val replacement = listOf(
+        Regex("^You have joined $name's party!$"),
+        Regex("^You (?:left the party[.!]|have been kicked from the party(?: by $name[.!]?)?)$"),
+        Regex("^The party was disbanded(?:[.!]| because .+)$"),
+        Regex("^$name has disbanded the party[.!]?$"),
+        Regex("^You are not (?:currently )?in a party[.!]?$"))
+    fun replacesParty(text: String) = replacement.any { it.matches(text.replace(Regex("§."), "").trim()) }
 }

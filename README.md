@@ -18,6 +18,8 @@ The two message controls are dropdown menus; choose **other** to reveal a custom
 
 ## Party readiness
 
+**Every ticket message requires your own `!dt contest` in the current party and current contest.** Your server-confirmed party-chat echo arms the message, whether sent manually or by the automatic contest-start feature. Joining a party with an already-earned ticket does not send anything. Another member's request, your `!dt food`, `1s`, `sec`, or a different custom start message does not arm it. Leaving, joining/replacing parties, disconnecting, and a new contest clear this permission; ordinary same-party server transfers and roster/leader updates retain it. Permission is not restored from disk.
+
 Party messages `!dt` (including a reason such as `!dt contest`), `1s`, and `sec` create a request for that sender, including your own request. Each sender clears only their own request with `r` or `ready` (case-insensitive, with optional full stops/exclamation marks). Requests belong to the current contest and persist across relogs. Leaving players are removed; changing/disbanding your party clears requests.
 
 When your ticket message starts with `!`:
@@ -26,7 +28,7 @@ When your ticket message starts with `!`:
 - **Party leader:** never substitute **r** for the command. Wait until every other requester says `r` or `ready`, then send the configured command once. Your own request does not block you once your ticket is earned. A pending command expires at the end of that contest.
 - **Unknown leader:** wait for server-confirmed party information before deciding whether to send a command.
 
-If nobody is waiting, send the configured command normally. Ticket messages that do not start with `!` (including an explicitly selected `r`) send normally. These rules are also explained in the Party settings page.
+After your own contest request, if nobody is waiting, send the configured command normally. Ticket messages that do not start with `!` (including an explicitly selected `r`) also require that request, and then send normally. These rules are also explained in the Party settings page.
 
 ## Install
 
@@ -48,7 +50,7 @@ With Java 25 installed:
 ./gradlew buildAllTargets
 ```
 
-Windows: `gradlew.bat buildAllTargets`. Tested installable JARs are collected under `build/distributions/1.1.0/`. Each target runs the Honeyhive, contest, party readiness, instance gating, welcome and HUD layout tests. GitHub Actions builds all three targets, exposes a required `build` check, and publishes tested JARs for matching `v<mod_version>` tags.
+Windows: `gradlew.bat buildAllTargets`. Tested installable JARs are collected under `build/distributions/1.1.0/`. Each target runs the Honeyhive, contest, party readiness, instance gating, welcome and HUD layout tests. GitHub Actions builds all three targets, exposes a required `build` check, and publishes tested JARs for matching `v<mod_version>` tags. Re-releasing an existing tag replaces its JAR assets.
 
 For an offline settings smoke check: `gradlew.bat :26.1.2:runClient -PclientSmoke`. This opens the settings after startup without joining a server. Use `/safaricontest debug` in game to log nearby Honeyhive diagnostics.
 

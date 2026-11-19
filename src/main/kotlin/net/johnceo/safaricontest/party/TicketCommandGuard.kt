@@ -5,6 +5,12 @@ object TicketCommandGuard {
     enum class Decision { SEND, READY, WAIT }
     private val envelope = Regex("""^Party\s*>\s*(?:\[[^\]]+]\s*)*([A-Za-z0-9_]{1,16}):\s*(.*)$""")
     private val downtime = Regex("""^!dt(?:\s+.*)?$""", RegexOption.IGNORE_CASE)
+    fun isOwnContestRequest(text: String, self: String): Boolean {
+        if (self.isBlank()) return false
+        val match = envelope.matchEntire(text.replace(Regex("§."), "").trim()) ?: return false
+        return match.groupValues[1].equals(self,true) &&
+            match.groupValues[2].trim().matches(Regex("^!dt\\s+contest$", RegexOption.IGNORE_CASE))
+    }
     fun observe(text: String, requests: MutableSet<String>): Boolean {
         val match = envelope.matchEntire(text.replace(Regex("§."), "").trim()) ?: return false
         val sender = match.groupValues[1].lowercase()

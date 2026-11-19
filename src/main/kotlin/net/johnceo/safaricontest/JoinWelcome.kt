@@ -29,14 +29,16 @@ object JoinWelcome {
     }
     fun message(): Component {
         fun text(value: String, color: Int) = Component.literal(value).withStyle { it.withColor(color) }
-        return text("────── ", SafariTheme.ACCENT)
+        val divider = "────────────────────────"
+        return text("$divider\n  ", SafariTheme.ACCENT)
             .append(text("SafariContest", SafariTheme.CHAT_ACCENT).withStyle { it.withBold(true) })
-            .append(text(" ──────\n  ", SafariTheme.ACCENT))
+            .append(text("\n  ", SafariTheme.ACCENT))
             .append(text("/s", SafariTheme.CHAT_ACCENT).withStyle {
                 it.withClickEvent(ClickEvent.RunCommand("/s"))
                     .withHoverEvent(HoverEvent.ShowText(Component.literal("Open SafariContest settings")))
             })
-            .append(text("\n─────────────────────────", SafariTheme.ACCENT))
+            .append(text(" — Open settings\n", SafariTheme.CHAT_TEXT))
+            .append(text(divider, SafariTheme.ACCENT))
     }
     fun reset() { state = JoinWelcomeState() }
 }
