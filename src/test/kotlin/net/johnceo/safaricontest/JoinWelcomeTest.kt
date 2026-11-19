@@ -16,6 +16,8 @@ class JoinWelcomeTest {
     @Test fun `welcome contains only mod name and the main command`() {
         val text = JoinWelcome.message().string
         assertTrue(text.contains("SafariContest")); assertTrue(text.contains("/s"))
-        assertFalse(text.contains("/sc")); assertFalse(text.contains("Settings"))
+        assertFalse(text.contains("/sc")); assertTrue(text.contains("Open settings"))
+        val lines = text.lines()
+        assertEquals(lines.first(),lines.last())
     }
 }
