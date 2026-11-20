@@ -60,7 +60,7 @@ class ContestSettingsScreen(private var page: Int = 0, private val returnTo: Scr
         choice(0,"Warning volume","Set the local warning sound volume.",listOf("0%","25%","50%","75%","100%","150%","200%"),
             { "${ContestConfig.contestSoundVolume}%" },{ ContestConfig.contestSoundVolume = it.removeSuffix("%").toInt() })
         textInput(0,"Warning sound","Minecraft sound identifier.",{ ContestConfig.contestSound },{ ContestConfig.contestSound = it })
-        choice(1,"Ticket earned message","Only sends after your own !dt contest in this party and contest. Joining a party never sends it. For ! commands: members use r while anyone is waiting; leaders wait for every other requester to say r or ready, then send the command.",
+        choice(1,"Ticket earned message","Requires your own !dt contest in this party and contest. Your own request never blocks a ! command. Only teammates' !dt tokens or exact sec / 1s messages mean waiting; other messages mark that sender ready. Members use r while teammates wait; leaders wait, then send the command.",
             ContestConfig.ticketChoices,{ ContestConfig.ticketChoice },{ ContestConfig.ticketChoice = it })
         if (ContestConfig.ticketChoice == "other") textInput(1,"Custom ticket message","Requires your own !dt contest in this party. Empty text uses r. Any ! command follows member r fallback / leader readiness rules.",
             { ContestConfig.customTicket },{ ContestConfig.customTicket = it })
