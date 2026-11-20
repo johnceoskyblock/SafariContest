@@ -12,7 +12,9 @@ A standalone client-side Fabric mod for Hypixel SkyBlock dungeon players who wan
 - Incomplete contest title/sound warnings at 5, 3, and 1 minute, individually configurable.
 - Personal Torrhus Canyon Honeyhive beacons, persistent one-hour loot timers, Queen Bee refill detection, and nearby hologram corrections. Hives hide once your selected ticket target is complete.
 
-Open settings with **/s** or **/safaricontest**. Use **/s gui** for the HUD layout editor. The former `/sc` alias is removed. A short welcome block shows only SafariContest and the clickable `/s` command when you join SkyBlock.
+Open settings with **/s** or **/safaricontest**. Use **/s gui** for the HUD layout editor. The former `/sc` alias is removed. The welcome block shows SafariContest, the clickable `/s — Open settings` command, and the latest compatible release directly underneath. Its version links to the GitHub release and indicates whether an update is available or you are up to date. Matching top/bottom dividers frame the block.
+
+Version checks use public GitHub release metadata in the background with a 10-second timeout. Stable releases must include a JAR for your Minecraft version. Successful results are cached for five minutes; failed checks retry after one minute. No player identifiers or credentials are sent, and no updates are downloaded automatically. If the check fails, the welcome still appears with `Couldn't check`.
 
 The two message controls are dropdown menus; choose **other** to reveal a custom text field. Blank custom text falls back to the default. Messages are always sent as the body of `/pc`.
 
@@ -50,7 +52,7 @@ With Java 25 installed:
 ./gradlew buildAllTargets
 ```
 
-Windows: `gradlew.bat buildAllTargets`. Tested installable JARs are collected under `build/distributions/1.1.0/`. Each target runs the Honeyhive, contest, party readiness, instance gating, welcome and HUD layout tests. GitHub Actions builds all three targets, exposes a required `build` check, and publishes tested JARs for matching `v<mod_version>` tags. Re-releasing an existing tag replaces its JAR assets.
+Windows: `gradlew.bat buildAllTargets`. Tested installable JARs are collected under `build/distributions/1.1.1/`. Each target runs the Honeyhive, contest, party readiness, instance gating, welcome, release checker and HUD layout tests. GitHub Actions builds all three targets, exposes a required `build` check, and publishes tested JARs for matching `v<mod_version>` tags.
 
 For an offline settings smoke check: `gradlew.bat :26.1.2:runClient -PclientSmoke`. This opens the settings after startup without joining a server. Use `/safaricontest debug` in game to log nearby Honeyhive diagnostics.
 
