@@ -4,7 +4,7 @@ package net.johnceo.safaricontest.party
 object TicketCommandGuard {
     enum class Decision { SEND, READY, WAIT }
     private val envelope = Regex("""^Party\s*>\s*(?:\[[^\]]+]\s*)*([A-Za-z0-9_]{1,16}):\s*(.*)$""")
-    private val downtime = Regex("""^!dt(?:\s+.*)?$""", RegexOption.IGNORE_CASE)
+    private val downtime = Regex("""(?:^|\s)!dt(?=$|\s|[.!?,:;])""", RegexOption.IGNORE_CASE)
     fun isOwnContestRequest(text: String, self: String): Boolean {
         if (self.isBlank()) return false
         val match = envelope.matchEntire(text.replace(Regex("§."), "").trim()) ?: return false
@@ -15,16 +15,15 @@ object TicketCommandGuard {
         val match = envelope.matchEntire(text.replace(Regex("§."), "").trim()) ?: return false
         val sender = match.groupValues[1].lowercase()
         val body = match.groupValues[2].trim()
-        if (downtime.matches(body) || body.equals("1s", true) || body.equals("sec", true)) return requests.add(sender)
-        if (body.matches(Regex("^(?:r|ready)[.!]*$", RegexOption.IGNORE_CASE))) return requests.remove(sender)
-        return false
+        if (downtime.containsMatchIn(body) || body.equals("1s", true) || body.equals("sec", true)) return requests.add(sender)
+        // Only these explicit requests mean waiting. Any other party message marks its own sender ready.
+        return requests.remove(sender)
     }
     fun decide(message: String, self: String, leader: Boolean?, requests: Set<String>): Decision {
         if (!message.trimStart().startsWith("!")) return Decision.SEND
         if (leader == null) return Decision.WAIT
-        return if (leader) {
-            if (requests.any { !it.equals(self,true) }) Decision.WAIT else Decision.SEND
-        } else if (requests.isNotEmpty()) Decision.READY else Decision.SEND
+        val teammatesWaiting = requests.any { !it.equals(self,true) }
+        return if (!teammatesWaiting) Decision.SEND else if (leader) Decision.WAIT else Decision.READY
     }
     fun observeDeparture(text: String, requests: MutableSet<String>): Boolean {
         val clean = text.replace(Regex("§."), "").trim()
